@@ -1,0 +1,2 @@
+# File managed by Ansible
+podman ALL=(ALL) NOPASSWD: ALL
