@@ -6,8 +6,13 @@ ANSIBLELINT=@if which ansible-lint > /dev/null; then ansible-lint $@.yml; fi
 PYLINT=@if which pylint > /dev/null; then if test -f $(PYTHON_SCRIPT); then pylint -d C0103 $(PYTHON_SCRIPT); fi; fi
 PLAYBOOK=ansible-playbook $(OPTIONS) $@.yml
 
-main reinstall:
+all: main
+
+install_roles:
+	ansible-galaxy install -r requirements.yml
+
+main reinstall: install_roles
 	$(YAMLLINT)
 	$(ANSIBLELINT)
 	$(PYLINT)
-	$(PLAYBOOK) --check #-vvv
+	$(PLAYBOOK) #-vvv

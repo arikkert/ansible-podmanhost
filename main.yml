@@ -10,11 +10,11 @@
     lv: data
     mp: "/container-data"  # MountPoint
   roles:
-    - role: role_nrpe
+    - role: arikkert.nrpe
       when: containers is defined or pods is defined
-    - role: role_nrpe_check_podman
+    - role: arikkert.nrpe_check_podman
       when: containers is defined or pods is defined
-    - role: role_postfix
+    - role: arikkert.postfix
 
   # First (pre) configure the hosts
   # After that use roles to add special features
