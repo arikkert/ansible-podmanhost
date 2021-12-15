@@ -18,7 +18,7 @@ It also installs *git* and *mgitstatus*
 Requirements
 ------------
 
-Deploy host has *ansible* and *ansible-galaxy* installed.
+Deploy host has *ansible* and *ansible-galaxy* installed.  
 Target host has CentOS >= 8 installed.  
 Requires root access to target host.  
 Requires an extra disk */dev/sdb* of at least 40 GB in size for future pod/container data.  
@@ -27,12 +27,12 @@ Variables
 --------------
 
 Vars that can be set in inventory  
-* email_root: the email of the root account, defaults to root  
-* nagios: the host running nagios, defaults to nagios  
+* *email_root*: the email of the root account, defaults to root  
+* *nagios*: the host running nagios, defaults to nagios  
 
 hostvars  
-* containers: optional list of containers that should be running on target host  
-* pods: optional list of pods that should be running on target host  
+* *containers*: optional list of containers that should be running on target host  
+* *pods*: optional list of pods that should be running on target host  
 
 These vars are used in the roles
 
