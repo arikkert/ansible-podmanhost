@@ -40,7 +40,7 @@ Dependencies
 
 * role_nrpe
 * role_nrpe_check_podman
-* role_postfix
+* role_postfix_nullclient
 
 License
 -------

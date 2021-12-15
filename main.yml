@@ -14,7 +14,7 @@
       when: containers is defined or pods is defined
     - role: arikkert.nrpe_check_podman
       when: containers is defined or pods is defined
-    - role: arikkert.postfix
+    - role: arikkert.postfix_nullclient
 
   # First (pre) configure the hosts
   # After that use roles to add special features
