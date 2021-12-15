@@ -1,2 +1,2 @@
 - src: arikkert.nrpe_check_podman
-- src: arikkert.postfix
+- src: arikkert.postfix_nullclient
