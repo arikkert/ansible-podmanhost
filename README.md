@@ -1,9 +1,9 @@
 playbook documentation
 ======================
 
-installs and configures ansible on target host with Centos >= 8.    
-installs and configures NRPE with *check_podman* that checks what pods and containers running.  
-pods and containers to be checked should be defined as host_vars.  
+Installs and configures ansible on target host with CentOS >= 8.    
+Installs and configures NRPE with *check_podman* that checks what pods and containers running.  
+Pods and containers to be checked should be defined as host_vars.  
 It will configure the target host to use podman and reserves a separate partition for the pod/container data
 
 Info
