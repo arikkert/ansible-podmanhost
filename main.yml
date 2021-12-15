@@ -85,7 +85,7 @@
         owner: podman
         group: podman
 
-    - name: ensure dirs exist, go group stuff together
+    - name: ensure dirs exist, group stuff together
       become: true
       become_user: podman
       file:
@@ -118,7 +118,7 @@
     - name: ensure LV exists
       lvol:
         vg: "{{ vg }}"
-        lv: data
+        lv: "{{ lv }}"
         size: 40G
         pvs: /dev/{{ pv }}
 
