@@ -10,7 +10,7 @@ Info
 ----
 
 This implementation uses a Makefile as installation wrapper.  
-The makefile calls tools like *yamllint*, *ansible-lint* and *pylint*.    
+The makefile calls tools like *yamllint* and *ansible-lint*.  
 These tools are only called when found in the search path, so no problem if they are not installed.  
 It will add and configure a user *podman* that has elevated root privileges.  
 It also installs *git* and *mgitstatus*
@@ -18,6 +18,7 @@ It also installs *git* and *mgitstatus*
 Requirements
 ------------
 
+Deploy host has *ansible* and *ansible-galaxy* installed.
 Target host has CentOS >= 8 installed.  
 Requires root access to target host.  
 Requires an extra disk */dev/sdb* of at least 40 GB in size for future pod/container data.  
