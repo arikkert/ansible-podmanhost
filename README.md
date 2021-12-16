@@ -34,7 +34,7 @@ hostvars
 * *containers*: optional list of containers that should be running on target host  
 * *pods*: optional list of pods that should be running on target host  
 
-These vars are used in the roles
+These vars are used and documented in the roles
 
 Dependencies
 ------------
