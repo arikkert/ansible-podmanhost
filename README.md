@@ -39,8 +39,8 @@ These vars are used and documented in the roles
 Dependencies
 ------------
 
-* role_nrpe
 * role_nrpe_check_podman
+** role_nrpe (installed by role_nrpe_check_podman)
 * role_postfix_nullclient
 
 License
