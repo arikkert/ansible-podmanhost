@@ -18,7 +18,7 @@ It also installs *git* and *mgitstatus*
 Requirements
 ------------
 
-Deploy host has *ansible* and *ansible-galaxy* installed.  
+Deploy host has *make*, *ansible* and *ansible-galaxy* installed.  
 Target host has CentOS >= 8 installed.  
 Requires root access to target host.  
 Target host has an extra disk */dev/sdb* of at least 40 GB in size for future pod/container data.  
