@@ -31,7 +31,7 @@
       yum:
         name: podman
 
-    - name: ensure version is detected
+    - name: ensure podman version is detected
       shell: podman --version
       register: podman_version
       changed_when: false
