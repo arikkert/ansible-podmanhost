@@ -10,4 +10,4 @@ install_roles:
 main reinstall: install_roles
 	$(YAMLLINT)
 	$(ANSIBLELINT)
-	$(PLAYBOOK) --check #-vvv
+	$(PLAYBOOK) #-vvv
