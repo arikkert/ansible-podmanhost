@@ -10,7 +10,7 @@ Info
 ----
 
 This implementation uses a Makefile as installation wrapper.  
-Just type make in the directory where the Makefile is located, to install all dependencies and run the playbook.  
+Just type *make* in the directory where the Makefile is located, to install all dependencies and run the playbook.  
 The makefile calls tools like *yamllint* and *ansible-lint*.  
 These tools are only called when found in the search path, so no problem if they are not installed.  
 It will add and configure a user *podman* that has elevated root privileges.  
