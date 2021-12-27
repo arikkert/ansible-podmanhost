@@ -125,7 +125,7 @@
         fstype: xfs
         dev: /dev/mapper/{{ vg }}-{{ lv }}
 
-    - name: ensur MP (mountpoint) exists
+    - name: ensure MP (mountpoint) exists
       file:
         path: "{{ mp }}"
         state: directory
