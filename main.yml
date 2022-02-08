@@ -3,7 +3,7 @@
 ---
 - hosts: podman
   vars:
-    minimal_centos_version: "8"
+    minimal_ansible_distribution_major_version: 8
     tz: Europe/Amsterdam
     pv: sdb
     vg: vg01
@@ -20,8 +20,13 @@
 
     - name: Ensure target OS is supported
       fail:
-        msg: "Playbook only suitable/tested for CentOS {{ minimal_centos_version }} or higher"
-      when: ansible_distribution != 'CentOS' or ansible_distribution_major_version < minimal_centos_version
+        msg: "Playbook only suitable/tested for CentOS {{ mimimal_ansible_distribution_major_version }} or higher"
+      when: ansible_os_family != "RedHat" or (ansible_distribution_major_version | int) < minimal_ansible_distribution_major_version
+
+    - name: ensure repos can be found
+      include_role:
+        name: arikkert.centos8repo
+      when: ansible_distribution == "CentOS" and (ansible_distribution_major_version | int) == 8
 
     #
     # podman itself
