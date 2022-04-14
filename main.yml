@@ -19,12 +19,12 @@
   pre_tasks:
 
     - name: Ensure target OS is supported
-      fail:
+      ansible.builtin.fail:
         msg: "Playbook only suitable/tested for CentOS {{ mimimal_ansible_distribution_major_version }} or higher"
       when: ansible_os_family != "RedHat" or (ansible_distribution_major_version | int) < minimal_ansible_distribution_major_version
 
     - name: ensure repos can be found
-      include_role:
+      ansible.builtin.include_role:
         name: arikkert.centos8repo
       when: ansible_distribution == "CentOS" and (ansible_distribution_major_version | int) == 8
 
@@ -33,21 +33,21 @@
     #
 
     - name: ensure podman is installed
-      yum:
+      ansible.builtin.yum:
         name: podman
 
     - name: ensure podman version is detected
-      shell: podman --version
+      ansible.builtin.shell: podman --version
       register: podman_version
       changed_when: false
       check_mode: false
 
     - name: ensure podman version is shown
-      debug:
+      ansible.builtin.debug:
         msg: "{{ podman_version.stdout.split('\n') }}"
 
     - name: ensure user podman is installed
-      user:
+      ansible.builtin.user:
         name: podman
 
     #
@@ -55,17 +55,17 @@
     #
 
     - name: ensure compose deps are installed
-      yum:
+      ansible.builtin.yum:
         name: podman-compose
 
     - name: ensure podman-compose version is detected
-      shell: /bin/podman-compose version
+      ansible.builtin.shell: /bin/podman-compose version
       register: podmancompose_version
       changed_when: false
       check_mode: false
 
     - name: ensure podman-compose version is shown
-      debug:
+      ansible.builtin.debug:
         msg: "{{ podmancompose_version.stdout.split('\n') }}"
 
     #
@@ -73,7 +73,7 @@
     #
 
     - name: ensure .ssh dir exists
-      file:
+      ansible.builtin.file:
         path: /home/podman/.ssh
         state: directory
         mode: 0700
@@ -91,7 +91,7 @@
     - name: ensure dirs exist, group stuff together
       become: true
       become_user: podman
-      file:
+      ansible.builtin.file:
         path: /home/podman/{{ item }}
         state: directory
         mode: 0755
@@ -100,11 +100,11 @@
         - podman_compose
 
     - name: ensure sudo is installed
-      package:
+      ansible.builtin.package:
         name: sudo
 
     - name: ensure user podman can have elevated privileges
-      copy:
+      ansible.builtin.copy:
         src: "{{ item }}"
         dest: /etc/sudoers.d/
         mode: '0440'
@@ -114,30 +114,30 @@
 
     # Create storage for persistent container data
     - name: ensure VG exists
-      lvg:
+      ansible.builtin.lvg:
         pvs: /dev/{{ pv }}
         vg: "{{ vg }}"
 
     - name: ensure LV exists
-      lvol:
+      ansible.builtin.lvol:
         vg: "{{ vg }}"
         lv: "{{ lv }}"
         size: 40G
         pvs: /dev/{{ pv }}
 
     - name: ensure FS exists
-      filesystem:
+      ansible.builtin.filesystem:
         fstype: xfs
         dev: /dev/mapper/{{ vg }}-{{ lv }}
 
     - name: ensure MP (mountpoint) exists
-      file:
+      ansible.builtin.file:
         path: "{{ mp }}"
         state: directory
         mode: 0755
 
     - name: mount
-      mount:
+      ansible.builtin.mount:
         path: "{{ mp }}"
         src: /dev/mapper/{{ vg }}-{{ lv }}
         fstype: xfs
@@ -148,11 +148,11 @@
     #
 
     - name: ensure git is installed
-      yum:
+      ansible.builtin.yum:
         name: git
 
     - name: relabel needed for this (vagrant) box and timezone
-      command: restorecon -v /etc/localtime
+      ansible.builtin.command: restorecon -v /etc/localtime
       register: command
       changed_when: '"Relabeled" in command.stdout'
 
@@ -165,7 +165,7 @@
     #
 
     - name: ensure yamllint is installed
-      yum:
+      ansible.builtin.yum:
         name: "{{ item }}"
       loop:
         - yamllint
@@ -173,13 +173,13 @@
     # sources on git clone https://github.com/fboender/multi-git-status.git
     # I patched this version to support old git and locks
     - name: ensure mgitstatus is installed
-      copy:
+      ansible.builtin.copy:
         src: mgitstatus
         dest: /usr/local/bin/
         mode: 0755
 
     - name: ensure mgitstatus manpage is installed
-      copy:
+      ansible.builtin.copy:
         src: mgitstatus.1.gz
         dest: /usr/share/man/man1/
         mode: 0644
