@@ -83,7 +83,7 @@
     - name: ensure ssh key pair exists
       become: true
       become_user: podman
-      openssh_keypair:
+      community.crypto.openssh_keypair:
         path: "~/.ssh/id_rsa"
         owner: podman
         group: podman
@@ -157,7 +157,7 @@
       changed_when: '"Relabeled" in command.stdout'
 
     - name: TZ {{ tz }}
-      timezone:
+      community.general.timezone:
         name: "{{ tz }}"
 
     #
