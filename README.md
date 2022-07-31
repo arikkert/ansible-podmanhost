@@ -1,10 +1,15 @@
 playbook documentation
 ======================
 
-Installs and configures podman on target host with CentOS >= 8.    
+N.B. This version defines the container storage location from /var/lib/containers to /container-data/var/lib/containers without
+moving the existing container storage. So I expect it to break the podman host when there are existing containers using the old location.
+
+Installs and configures podman on target host with CentOS/Almalinux >= 8.
 Installs and configures NRPE with *check_podman* that checks what pods and containers running.  
 Pods and containers to be checked should be defined as host_vars.  
 It will configure the target host as podman host (controlling pods and containers) and reserves a separate partition for the pod/container data
+
+Tested on CentOS 8 and Almalinux 9
 
 Info
 ----

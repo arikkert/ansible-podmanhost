@@ -9,6 +9,7 @@
     vg: vg01
     lv: data
     mp: "/container-data"  # MountPoint
+    graphroot: "{{ mp }}/var/lib/containers/storage"
   roles:
     - role: arikkert.nrpe_check_podman
       when: containers is defined or pods is defined
@@ -54,7 +55,17 @@
     # podman-compose
     #
 
-    - name: ensure compose deps are installed
+    - name: relabel needed for this (vagrant) box and timezone
+      ansible.builtin.command: restorecon -v /etc/localtime
+      register: command
+      changed_when: '"Relabeled" in command.stdout'
+
+    - name: ensure epel is installed
+      ansible.builtin.command:
+        cmd: dnf install -y epel-release
+        creates: /etc/yum.repos.d/epel.repo
+
+    - name: ensure podman-compose is installed
       ansible.builtin.yum:
         name: podman-compose
 
@@ -112,7 +123,17 @@
       loop:
         - 10_podman
 
+    - name: ensure podman is owner of MP (mountpoint)
+      ansible.builtin.file:
+        path: "{{ mp }}"
+        owner: podman
+
     # Create storage for persistent container data
+
+    - name: ensure VG deps are installed
+      ansible.builtin.yum:
+        name: lvm2
+
     - name: ensure VG exists
       ansible.builtin.lvg:
         pvs: /dev/{{ pv }}
@@ -142,6 +163,42 @@
         src: /dev/mapper/{{ vg }}-{{ lv }}
         fstype: xfs
         state: mounted
+
+    - name: show
+      ansible.builtin.debug:
+        msg: "{{ graphroot }}"
+      tags: dit
+
+    - name: ensure container storage directory is present
+      ansible.builtin.file:
+        path: "{{ graphroot }}"
+        state: directory
+      tags: dit
+
+    # https://ahelpme.com/software/podman/change-the-location-of-container-storage-in-podman-with-selinux-enabled/
+    # om default container storage uit OS image te halen, anders ben je afhankelijk bijv als je vagrant boxes gebruikt
+    #
+    # nog uitzoeken hoe dit beetje mooier kan
+    # Gaat erom dat de nieuwe locatie de juiste fcontext heeft en idempotent
+    - name: ensure selinux fcontext is saved in fcontext db
+      ansible.builtin.command: "semanage fcontext -a -e /var/lib/containers {{ mp }}/var/lib/containers"
+      register: result
+      changed_when: '"already exists" not in result.stderr'
+      failed_when: false
+      tags: dit
+
+    - name: ensure selinux perms is applied as set in fcontext db
+      ansible.builtin.command: "restorecon -R {{ mp }}/var/lib/containers"
+      when: '"already exists" not in result.stderr'
+      tags: dit
+
+    - name: ensure the new container storage is used
+      ansible.builtin.lineinfile:
+        path: /etc/containers/storage.conf
+        regexp: '^graphroot = '
+        line: graphroot = "{{ graphroot }}"
+        backup: true
+      tags: dit
 
     #
     # git
