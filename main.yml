@@ -123,11 +123,6 @@
       loop:
         - 10_podman
 
-    - name: ensure podman is owner of MP (mountpoint)
-      ansible.builtin.file:
-        path: "{{ mp }}"
-        owner: podman
-
     # Create storage for persistent container data
 
     - name: ensure VG deps are installed
@@ -155,6 +150,8 @@
       ansible.builtin.file:
         path: "{{ mp }}"
         state: directory
+        owner: podman
+        group: podman
         mode: 0755
 
     - name: mount
@@ -167,13 +164,11 @@
     - name: show
       ansible.builtin.debug:
         msg: "{{ graphroot }}"
-      tags: dit
 
     - name: ensure container storage directory is present
       ansible.builtin.file:
         path: "{{ graphroot }}"
         state: directory
-      tags: dit
 
     # https://ahelpme.com/software/podman/change-the-location-of-container-storage-in-podman-with-selinux-enabled/
     # om default container storage uit OS image te halen, anders ben je afhankelijk bijv als je vagrant boxes gebruikt
@@ -185,12 +180,10 @@
       register: result
       changed_when: '"already exists" not in result.stderr'
       failed_when: false
-      tags: dit
 
     - name: ensure selinux perms is applied as set in fcontext db
       ansible.builtin.command: "restorecon -R {{ mp }}/var/lib/containers"
       when: '"already exists" not in result.stderr'
-      tags: dit
 
     - name: ensure the new container storage is used
       ansible.builtin.lineinfile:
@@ -198,7 +191,6 @@
         regexp: '^graphroot = '
         line: graphroot = "{{ graphroot }}"
         backup: true
-      tags: dit
 
     #
     # git
@@ -241,4 +233,29 @@
         dest: /usr/share/man/man1/
         mode: 0644
 
+    #
+    # cockpit (podman UI)
+    #
+
+    - name: ensure cockpit is installed
+      ansible.builtin.dnf:
+        name:
+          - cockpit
+          - cockpit-podman
+
+    - name: ensure cockpit is running
+      ansible.builtin.service:
+        name: cockpit.socket
+        enabled: true
+        state: started
+
+    #
+    # firewall
+    #
+
+    - name: ensure firewall is running
+      ansible.builtin.service:
+        name: firewalld
+        enabled: true
+        state: started
 ...
