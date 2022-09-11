@@ -1,7 +1,8 @@
 #
 # podman is group of target hosts, in this example podman01 and podman02
 ---
-- hosts: podman
+- name: Provision podman hosts, servers that host podman pods and containers
+  hosts: podman
   vars:
     minimal_ansible_distribution_major_version: 8
     tz: Europe/Amsterdam
@@ -24,7 +25,7 @@
         msg: "Playbook only suitable/tested for CentOS {{ mimimal_ansible_distribution_major_version }} or higher"
       when: ansible_os_family != "RedHat" or (ansible_distribution_major_version | int) < minimal_ansible_distribution_major_version
 
-    - name: ensure repos can be found
+    - name: Ensure repos can be found
       ansible.builtin.include_role:
         name: arikkert.centos8repo
       when: ansible_distribution == "CentOS" and (ansible_distribution_major_version | int) == 8
@@ -33,21 +34,21 @@
     # podman itself
     #
 
-    - name: ensure podman is installed
+    - name: Ensure podman is installed
       ansible.builtin.yum:
         name: podman
 
-    - name: ensure podman version is detected
+    - name: Ensure podman version is detected
       ansible.builtin.shell: podman --version
       register: podman_version
       changed_when: false
       check_mode: false
 
-    - name: ensure podman version is shown
+    - name: Ensure podman version is shown
       ansible.builtin.debug:
         msg: "{{ podman_version.stdout.split('\n') }}"
 
-    - name: ensure user podman is installed
+    - name: Ensure user podman is installed
       ansible.builtin.user:
         name: podman
 
@@ -55,27 +56,27 @@
     # podman-compose
     #
 
-    - name: relabel needed for this (vagrant) box and timezone
+    - name: Relabel needed for this (vagrant) box and timezone
       ansible.builtin.command: restorecon -v /etc/localtime
       register: command
       changed_when: '"Relabeled" in command.stdout'
 
-    - name: ensure epel is installed
+    - name: Ensure epel is installed
       ansible.builtin.command:
         cmd: dnf install -y epel-release
         creates: /etc/yum.repos.d/epel.repo
 
-    - name: ensure podman-compose is installed
+    - name: Ensure podman-compose is installed
       ansible.builtin.yum:
         name: podman-compose
 
-    - name: ensure podman-compose version is detected
+    - name: Ensure podman-compose version is detected
       ansible.builtin.shell: /bin/podman-compose version
       register: podmancompose_version
       changed_when: false
       check_mode: false
 
-    - name: ensure podman-compose version is shown
+    - name: Ensure podman-compose version is shown
       ansible.builtin.debug:
         msg: "{{ podmancompose_version.stdout.split('\n') }}"
 
@@ -83,7 +84,7 @@
     # continue
     #
 
-    - name: ensure .ssh dir exists
+    - name: Ensure .ssh dir exists
       ansible.builtin.file:
         path: /home/podman/.ssh
         state: directory
@@ -91,7 +92,7 @@
         owner: podman
         group: podman
 
-    - name: ensure ssh key pair exists
+    - name: Ensure ssh key pair exists
       become: true
       become_user: podman
       community.crypto.openssh_keypair:
@@ -99,7 +100,7 @@
         owner: podman
         group: podman
 
-    - name: ensure dirs exist, group stuff together
+    - name: Ensure dirs exist, group stuff together
       become: true
       become_user: podman
       ansible.builtin.file:
@@ -110,11 +111,11 @@
         - podman
         - podman_compose
 
-    - name: ensure sudo is installed
+    - name: Ensure sudo is installed
       ansible.builtin.package:
         name: sudo
 
-    - name: ensure user podman can have elevated privileges
+    - name: Ensure user podman can have elevated privileges
       ansible.builtin.copy:
         src: "{{ item }}"
         dest: /etc/sudoers.d/
@@ -125,28 +126,28 @@
 
     # Create storage for persistent container data
 
-    - name: ensure VG deps are installed
+    - name: Ensure VG deps are installed
       ansible.builtin.yum:
         name: lvm2
 
-    - name: ensure VG exists
+    - name: Ensure VG exists
       ansible.builtin.lvg:
         pvs: /dev/{{ pv }}
         vg: "{{ vg }}"
 
-    - name: ensure LV exists
+    - name: Ensure LV exists
       ansible.builtin.lvol:
         vg: "{{ vg }}"
         lv: "{{ lv }}"
         size: 40G
         pvs: /dev/{{ pv }}
 
-    - name: ensure FS exists
+    - name: Ensure FS exists
       ansible.builtin.filesystem:
         fstype: xfs
         dev: /dev/mapper/{{ vg }}-{{ lv }}
 
-    - name: ensure MP (mountpoint) exists
+    - name: Ensure MP (mountpoint) exists
       ansible.builtin.file:
         path: "{{ mp }}"
         state: directory
@@ -154,38 +155,39 @@
         group: podman
         mode: 0755
 
-    - name: mount
+    - name: Ensure MP is mounted
       ansible.builtin.mount:
         path: "{{ mp }}"
         src: /dev/mapper/{{ vg }}-{{ lv }}
         fstype: xfs
         state: mounted
 
-    - name: show
+    - name: Show
       ansible.builtin.debug:
         msg: "{{ graphroot }}"
 
-    - name: ensure container storage directory is present
+    - name: Ensure container storage directory is present
       ansible.builtin.file:
         path: "{{ graphroot }}"
         state: directory
+        mode: 0700
 
     # https://ahelpme.com/software/podman/change-the-location-of-container-storage-in-podman-with-selinux-enabled/
     # om default container storage uit OS image te halen, anders ben je afhankelijk bijv als je vagrant boxes gebruikt
     #
     # nog uitzoeken hoe dit beetje mooier kan
     # Gaat erom dat de nieuwe locatie de juiste fcontext heeft en idempotent
-    - name: ensure selinux fcontext is saved in fcontext db
+    - name: Ensure selinux fcontext is saved in fcontext db
       ansible.builtin.command: "semanage fcontext -a -e /var/lib/containers {{ mp }}/var/lib/containers"
       register: result
       changed_when: '"already exists" not in result.stderr'
       failed_when: false
 
-    - name: ensure selinux perms is applied as set in fcontext db
+    - name: Ensure selinux perms is applied as set in fcontext db
       ansible.builtin.command: "restorecon -R {{ mp }}/var/lib/containers"
       when: '"already exists" not in result.stderr'
 
-    - name: ensure the new container storage is used
+    - name: Ensure the new container storage is used
       ansible.builtin.lineinfile:
         path: /etc/containers/storage.conf
         regexp: '^graphroot = '
@@ -196,11 +198,11 @@
     # git
     #
 
-    - name: ensure git is installed
+    - name: Ensure git is installed
       ansible.builtin.yum:
         name: git
 
-    - name: relabel needed for this (vagrant) box and timezone
+    - name: Relabel needed for this (vagrant) box and timezone
       ansible.builtin.command: restorecon -v /etc/localtime
       register: command
       changed_when: '"Relabeled" in command.stdout'
@@ -213,7 +215,7 @@
     # helpers
     #
 
-    - name: ensure yamllint is installed
+    - name: Ensure yamllint is installed
       ansible.builtin.yum:
         name: "{{ item }}"
       loop:
@@ -221,13 +223,13 @@
 
     # sources on git clone https://github.com/fboender/multi-git-status.git
     # I patched this version to support old git and locks
-    - name: ensure mgitstatus is installed
+    - name: Ensure mgitstatus is installed
       ansible.builtin.copy:
         src: mgitstatus
         dest: /usr/local/bin/
         mode: 0755
 
-    - name: ensure mgitstatus manpage is installed
+    - name: Ensure mgitstatus manpage is installed
       ansible.builtin.copy:
         src: mgitstatus.1.gz
         dest: /usr/share/man/man1/
@@ -237,13 +239,13 @@
     # cockpit (podman UI)
     #
 
-    - name: ensure cockpit is installed
+    - name: Ensure cockpit is installed
       ansible.builtin.dnf:
         name:
           - cockpit
           - cockpit-podman
 
-    - name: ensure cockpit is running
+    - name: Ensure cockpit is running
       ansible.builtin.service:
         name: cockpit.socket
         enabled: true
@@ -253,7 +255,7 @@
     # firewall
     #
 
-    - name: ensure firewall is running
+    - name: Ensure firewall is running
       ansible.builtin.service:
         name: firewalld
         enabled: true
