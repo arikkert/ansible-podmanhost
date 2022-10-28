@@ -30,6 +30,18 @@
         name: arikkert.centos8repo
       when: ansible_distribution == "CentOS" and (ansible_distribution_major_version | int) == 8
 
+    # nog uitzoeken:
+    # grubby --remove-args="rhgb quiet"
+    # grub2-editenv --help
+    - name: Ensure bootmessages are displayed
+      ansible.builtin.replace:
+        path: /boot/grub2/grubenv
+        regexp: 'rhgb quiet'
+        replace: ''
+        backup: true
+      tags: grub
+      when: false
+
     #
     # podman itself
     #
@@ -131,19 +143,19 @@
         name: lvm2
 
     - name: Ensure VG exists
-      ansible.builtin.lvg:
+      community.general.system.lvg:
         pvs: /dev/{{ pv }}
         vg: "{{ vg }}"
 
     - name: Ensure LV exists
-      ansible.builtin.lvol:
+      community.general.system.lvol:
         vg: "{{ vg }}"
         lv: "{{ lv }}"
         size: 40G
         pvs: /dev/{{ pv }}
 
     - name: Ensure FS exists
-      ansible.builtin.filesystem:
+      community.general.system.filesystem:
         fstype: xfs
         dev: /dev/mapper/{{ vg }}-{{ lv }}
 
@@ -156,7 +168,7 @@
         mode: 0755
 
     - name: Ensure MP is mounted
-      ansible.builtin.mount:
+      ansible.posix.mount:
         path: "{{ mp }}"
         src: /dev/mapper/{{ vg }}-{{ lv }}
         fstype: xfs
