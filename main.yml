@@ -100,7 +100,7 @@
       ansible.builtin.file:
         path: /home/podman/.ssh
         state: directory
-        mode: 0700
+        mode: '0700'
         owner: podman
         group: podman
 
@@ -118,7 +118,7 @@
       ansible.builtin.file:
         path: /home/podman/{{ item }}
         state: directory
-        mode: 0755
+        mode: '0755'
       loop:
         - podman
         - podman_compose
@@ -165,7 +165,7 @@
         state: directory
         owner: podman
         group: podman
-        mode: 0755
+        mode: '0755'
 
     - name: Ensure MP is mounted
       ansible.posix.mount:
@@ -182,7 +182,7 @@
       ansible.builtin.file:
         path: "{{ graphroot }}"
         state: directory
-        mode: 0700
+        mode: '0700'
 
     # https://ahelpme.com/software/podman/change-the-location-of-container-storage-in-podman-with-selinux-enabled/
     # om default container storage uit OS image te halen, anders ben je afhankelijk bijv als je vagrant boxes gebruikt
@@ -239,13 +239,13 @@
       ansible.builtin.copy:
         src: mgitstatus
         dest: /usr/local/bin/
-        mode: 0755
+        mode: '0755'
 
     - name: Ensure mgitstatus manpage is installed
       ansible.builtin.copy:
         src: mgitstatus.1.gz
         dest: /usr/share/man/man1/
-        mode: 0644
+        mode: '0644'
 
     #
     # cockpit (podman UI)
