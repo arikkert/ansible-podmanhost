@@ -143,19 +143,19 @@
         name: lvm2
 
     - name: Ensure VG exists
-      community.general.system.lvg:
+      community.general.lvg:
         pvs: /dev/{{ pv }}
         vg: "{{ vg }}"
 
     - name: Ensure LV exists
-      community.general.system.lvol:
+      community.general.lvol:
         vg: "{{ vg }}"
         lv: "{{ lv }}"
         size: 40G
         pvs: /dev/{{ pv }}
 
     - name: Ensure FS exists
-      community.general.system.filesystem:
+      community.general.filesystem:
         fstype: xfs
         dev: /dev/mapper/{{ vg }}-{{ lv }}
 
