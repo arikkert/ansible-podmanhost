@@ -272,4 +272,29 @@
         name: firewalld
         enabled: true
         state: started
+
+    #
+    # misc
+    #
+
+    - name: Ensure check_reboot-required.cfg is installed
+      ansible.builtin.copy:
+        src: check_reboot-required.cfg
+        dest: /etc/nrpe.d/
+        mode: '0644'
+      notify: Handler reload nrpe
+      tags: nu
+
+    - name: Ensure check_reboot-required is installed
+      ansible.builtin.copy:
+        src: check_reboot-required
+        dest: /usr/lib64/nagios/plugins/
+        mode: '0755'
+
+  handlers:
+    - name: Handler reload nrpe
+      ansible.builtin.service:
+        name: nrpe
+        state: reloaded
+
 ...
