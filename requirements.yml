@@ -1,4 +1,5 @@
 # from galaxy
+- src: arikkert.age_binaries
 - src: arikkert.nrpe_check_podman
 - src: arikkert.postfix_nullclient
 - src: arikkert.centos8repo

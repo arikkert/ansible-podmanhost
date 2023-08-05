@@ -12,6 +12,7 @@
     mp: "/container-data"  # MountPoint
     graphroot: "{{ mp }}/var/lib/containers/storage"
   roles:
+    - role: arikkert.age_binaries
     - role: arikkert.nrpe_check_podman
       when: containers is defined or pods is defined
     - role: arikkert.postfix_nullclient
@@ -233,6 +234,13 @@
       loop:
         - yamllint
 
+    - name: Ensure Secrets OPerationS (SOPS) is installed
+      ansible.builtin.yum:
+        name: "{{ item }}"
+        disable_gpg_check: true
+      loop:
+        - https://github.com/getsops/sops/releases/download/v3.7.3/sops-3.7.3-1.x86_64.rpm
+
     # sources on git clone https://github.com/fboender/multi-git-status.git
     # I patched this version to support old git and locks
     - name: Ensure mgitstatus is installed
@@ -272,29 +280,5 @@
         name: firewalld
         enabled: true
         state: started
-
-    #
-    # misc
-    #
-
-    - name: Ensure check_reboot-required.cfg is installed
-      ansible.builtin.copy:
-        src: check_reboot-required.cfg
-        dest: /etc/nrpe.d/
-        mode: '0644'
-      notify: Handler reload nrpe
-      tags: nu
-
-    - name: Ensure check_reboot-required is installed
-      ansible.builtin.copy:
-        src: check_reboot-required
-        dest: /usr/lib64/nagios/plugins/
-        mode: '0755'
-
-  handlers:
-    - name: Handler reload nrpe
-      ansible.builtin.service:
-        name: nrpe
-        state: reloaded
 
 ...
