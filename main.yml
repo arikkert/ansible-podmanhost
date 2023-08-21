@@ -11,15 +11,8 @@
     lv: data
     mp: "/container-data"  # MountPoint
     graphroot: "{{ mp }}/var/lib/containers/storage"
-  roles:
-    - role: arikkert.age_binaries
-    - role: arikkert.nrpe_check_podman
-      when: containers is defined or pods is defined
-    - role: arikkert.postfix_nullclient
 
-  # First (pre) configure the hosts
-  # After that use roles to add special features
-  pre_tasks:
+  tasks:
 
     - name: Ensure target OS is supported
       ansible.builtin.fail:
@@ -61,10 +54,6 @@
       ansible.builtin.debug:
         msg: "{{ podman_version.stdout.split('\n') }}"
 
-    - name: Ensure user podman is installed
-      ansible.builtin.user:
-        name: podman
-
     #
     # podman-compose
     #
@@ -97,38 +86,15 @@
     # continue
     #
 
-    - name: Ensure .ssh dir exists
-      ansible.builtin.file:
-        path: /home/podman/.ssh
-        state: directory
-        mode: '0700'
-        owner: podman
-        group: podman
-
-    - name: Ensure ssh key pair exists
-      become: true
-      become_user: podman
-      community.crypto.openssh_keypair:
-        path: "~/.ssh/id_rsa"
-        owner: podman
-        group: podman
-
-    - name: Ensure dirs exist, group stuff together
-      become: true
-      become_user: podman
-      ansible.builtin.file:
-        path: /home/podman/{{ item }}
-        state: directory
-        mode: '0755'
-      loop:
-        - podman
-        - podman_compose
+    - name: Ensure user podman is installed
+      ansible.builtin.user:
+        name: podman
 
     - name: Ensure sudo is installed
       ansible.builtin.package:
         name: sudo
 
-    - name: Ensure user podman can have elevated privileges
+    - name: Ensure user podman can elevate privileges
       ansible.builtin.copy:
         src: "{{ item }}"
         dest: /etc/sudoers.d/
@@ -207,14 +173,6 @@
         line: graphroot = "{{ graphroot }}"
         backup: true
 
-    #
-    # git
-    #
-
-    - name: Ensure git is installed
-      ansible.builtin.yum:
-        name: git
-
     - name: Relabel needed for this (vagrant) box and timezone
       ansible.builtin.command: restorecon -v /etc/localtime
       register: command
@@ -223,37 +181,6 @@
     - name: TZ {{ tz }}
       community.general.timezone:
         name: "{{ tz }}"
-
-    #
-    # helpers
-    #
-
-    - name: Ensure yamllint is installed
-      ansible.builtin.yum:
-        name: "{{ item }}"
-      loop:
-        - yamllint
-
-    - name: Ensure Secrets OPerationS (SOPS) is installed
-      ansible.builtin.yum:
-        name: "{{ item }}"
-        disable_gpg_check: true
-      loop:
-        - https://github.com/getsops/sops/releases/download/v3.7.3/sops-3.7.3-1.x86_64.rpm
-
-    # sources on git clone https://github.com/fboender/multi-git-status.git
-    # I patched this version to support old git and locks
-    - name: Ensure mgitstatus is installed
-      ansible.builtin.copy:
-        src: mgitstatus
-        dest: /usr/local/bin/
-        mode: '0755'
-
-    - name: Ensure mgitstatus manpage is installed
-      ansible.builtin.copy:
-        src: mgitstatus.1.gz
-        dest: /usr/share/man/man1/
-        mode: '0644'
 
     #
     # cockpit (podman UI)
