@@ -5,7 +5,6 @@
   hosts: podman
   vars:
     minimal_ansible_distribution_major_version: 8
-    tz: Europe/Amsterdam
     pv: sdb
     vg: vg01
     lv: data
@@ -177,10 +176,6 @@
       ansible.builtin.command: restorecon -v /etc/localtime
       register: command
       changed_when: '"Relabeled" in command.stdout'
-
-    - name: TZ {{ tz }}
-      community.general.timezone:
-        name: "{{ tz }}"
 
     #
     # cockpit (podman UI)

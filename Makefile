@@ -5,7 +5,10 @@ PLAYBOOK=ansible-playbook $(OPTIONS) $@.yml
 
 all: main
 
-main reinstall:
+install_roles:
+	ansible-galaxy install -r requirements.yml
+
+main reinstall: install_roles
 	$(YAMLLINT)
 	$(ANSIBLELINT)
 	$(PLAYBOOK)
