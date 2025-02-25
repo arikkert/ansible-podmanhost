@@ -1,2 +1,7 @@
 # from galaxy
-- src: arikkert.centos8repo
+---
+collections:
+  - name: ansible.posix
+  - name: community.general
+roles:
+  - src: arikkert.centos8repo

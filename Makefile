@@ -7,6 +7,7 @@ all: main
 
 requirements:
 	$(YAMLLINT)
+	$(ANSIBLELINT)
 	ansible-galaxy install -r $@.yml
 
 main reinstall: requirements
