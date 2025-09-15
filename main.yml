@@ -4,7 +4,8 @@
 - name: Provision podman hosts, servers that host podman pods and containers
   hosts: podman
   vars:
-    minimal_ansible_distribution_major_version: 8
+    _ansible_distribution: AlmaLinux
+    _minimal_ansible_distribution_major_version: 8
     pv: sdb
     vg: vg01
     lv: data
@@ -13,10 +14,13 @@
 
   tasks:
 
-    - name: Ensure target OS is supported
-      ansible.builtin.fail:
-        msg: "Playbook only suitable/tested for CentOS {{ mimimal_ansible_distribution_major_version }} or higher"
-      when: ansible_os_family != "RedHat" or (ansible_distribution_major_version | int) < minimal_ansible_distribution_major_version
+    - name: Ensure OS is supported
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == _ansible_distribution
+          - ansible_distribution_major_version | int >= _minimal_ansible_distribution_major_version | int
+        fail_msg: "Playbook only suitable/tested for distro {{ ansible_distribution }} major version >= {{ _minimal_ansible_distribution_major_version }}"
+        success_msg: "Yes, OS is fine"
 
     - name: Ensure repos can be found
       ansible.builtin.include_role:

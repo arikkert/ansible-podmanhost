@@ -3,4 +3,5 @@ skip_list:  # or 'skip_list' to silence them completely
 - '305'  # Use shell only when shell functionality is required
 - '306' 
 - '204'  # Lines should be no longer than 160 chars
+- yaml[comments]
 #- experimental
