@@ -6,7 +6,7 @@
   vars:
     _ansible_distribution: AlmaLinux
     _minimal_ansible_distribution_major_version: 8
-    pv: sdb
+    pv: vdb
     vg: vg01
     lv: data
     mp: "/container-data"  # MountPoint
@@ -144,37 +144,59 @@
         fstype: xfs
         state: mounted
 
-    - name: Show
-      ansible.builtin.debug:
-        msg: "{{ graphroot }}"
+    - name: Ensure graphroot is also stored in {{ mp }}
+      when: false
+      # Skipped cause backup/migration strategy is or should be:
+      # - assume containers can be recreated on target migration host, this implies  images can be pulled too
+      # - have all persistent strorage in /container-data/{ containername }/
+      # This should be sufficient
+      # Note that the storage of the podmanhost itself is big enough to store the non persistent containerdata
+      block:
 
-    - name: Ensure container storage directory is present
-      ansible.builtin.file:
-        path: "{{ graphroot }}"
-        state: directory
-        mode: '0700'
+        - name: Show
+          ansible.builtin.debug:
+            msg: "{{ graphroot }}"
 
-    # https://ahelpme.com/software/podman/change-the-location-of-container-storage-in-podman-with-selinux-enabled/
-    # om default container storage uit OS image te halen, anders ben je afhankelijk bijv als je vagrant boxes gebruikt
-    #
-    # nog uitzoeken hoe dit beetje mooier kan
-    # Gaat erom dat de nieuwe locatie de juiste fcontext heeft en idempotent
-    - name: Ensure selinux fcontext is saved in fcontext db
-      ansible.builtin.command: "semanage fcontext -a -e /var/lib/containers {{ mp }}/var/lib/containers"
-      register: result
-      changed_when: '"already exists" not in result.stderr'
-      failed_when: false
+        - name: Ensure container storage directory is present
+          ansible.builtin.file:
+            path: "{{ graphroot }}"
+            state: directory
+            mode: '0700'
 
-    - name: Ensure selinux perms is applied as set in fcontext db
-      ansible.builtin.command: "restorecon -R {{ mp }}/var/lib/containers"
-      when: '"already exists" not in result.stderr'
+        # https://ahelpme.com/software/podman/change-the-location-of-container-storage-in-podman-with-selinux-enabled/
+        # om default container storage uit OS image te halen, anders ben je afhankelijk bijv als je vagrant boxes gebruikt
+        #
+        # nog uitzoeken hoe dit beetje mooier kan
+        # Gaat erom dat de nieuwe locatie de juiste fcontext heeft en idempotent
+        - name: Ensure selinux fcontext is saved in fcontext db
+          ansible.builtin.command: "semanage fcontext -a -e /var/lib/containers {{ mp }}/var/lib/containers"
+          register: result
+          changed_when: '"already exists" not in result.stderr'
+          failed_when: false
 
-    - name: Ensure the new container storage is used
-      ansible.builtin.lineinfile:
-        path: /etc/containers/storage.conf
-        regexp: '^graphroot = '
-        line: graphroot = "{{ graphroot }}"
-        backup: true
+        - name: Ensure selinux perms is applied as set in fcontext db
+          ansible.builtin.command: "restorecon -R {{ mp }}/var/lib/containers"
+          when: '"already exists" not in result.stderr'
+
+        - name: Register existence of /etc/containers/storage.conf
+          ansible.builtin.stat:
+            path: /etc/containers/storage.conf
+          register: result
+
+        - name: Ensure /etc/containers/storage.conf exists
+          ansible.builtin.copy:
+            src: /usr/share/containers/storage.conf
+            dest: /etc/containers/storage.conf
+            remote_src: true
+            mode: "0644"
+          when: not result.stat.exists
+
+        - name: Ensure the new container storage is used
+          ansible.builtin.lineinfile:
+            path: /etc/containers/storage.conf
+            regexp: '^graphroot = '
+            line: graphroot = "{{ graphroot }}"
+            backup: true
 
     - name: Relabel needed for this (vagrant) box and timezone
       ansible.builtin.command: restorecon -v /etc/localtime
